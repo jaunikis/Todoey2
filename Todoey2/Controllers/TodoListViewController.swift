@@ -12,12 +12,12 @@ import CoreData
 
 class TodoListViewController:  UITableViewController {
     
-    var itemArray = [Item]()
+    var itemArray = [Item2]()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     //var itemArray = ["pirmas","antras","trecias","Ketvirtas","Penktas 5","Sestas 66666","sept sdkj jskd ash jkhf kjhs","astuntas 8888"]
     //let defaults = UserDefaults.standard
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    //let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,7 +34,7 @@ class TodoListViewController:  UITableViewController {
 //        newItem3.title = "trecias 3"
 //        itemArray.append(newItem3)
         
-//        loadItems()
+        loadItems()
         
         
         
@@ -68,7 +68,14 @@ class TodoListViewController:  UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print(indexPath.row)
-        print(itemArray[indexPath.row].title)
+        print(itemArray[indexPath.row].title!)
+        
+        //  UPDATE ITEMS
+        //        itemArray[indexPath.row].setValue("Completed", forKey: "title")
+        
+        // DELETE ITEMS
+        //context.delete(itemArray[indexPath.row])
+        //itemArray.remove(at: indexPath.row)
         
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
@@ -102,7 +109,7 @@ class TodoListViewController:  UITableViewController {
             print(textField.text!)
             if textField.text != "" {
                 
-                let newItem = Item(context: self.context)
+                let newItem = Item2(context: self.context)
                 newItem.title = textField.text!
                 newItem.done = false
                 
@@ -134,15 +141,40 @@ class TodoListViewController:  UITableViewController {
         tableView.reloadData()
     }
     
-//    func loadItems(){
-//        if let data = try? Data(contentsOf: dataFilePath!) {
-//            let decoder = PropertyListDecoder()
-//            do {
-//                itemArray = try decoder.decode([Item].self, from: data)
-//            } catch {
-//                print("error decoding")
-//            }
-//        }
-//    }
+    func loadItems(request: NSFetchRequest<Item2> = Item2.fetchRequest()){
+        do {
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
+        }
+        tableView.reloadData()
+    }
     
 }
+
+//MARK: - Search bar methods
+extension TodoListViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        print("search button clicked")
+        let request: NSFetchRequest<Item2> = Item2.fetchRequest()
+        //print(searchBar.text!)
+        
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        loadItems(request: request)
+    }
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+        loadItems()
+    }
+    
+    
+}
+
+
