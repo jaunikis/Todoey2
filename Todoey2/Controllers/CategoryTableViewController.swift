@@ -10,28 +10,80 @@ import UIKit
 import CoreData
 
 class CategoryTableViewController: UITableViewController {
-
+    
+    var categoryArray = [Category]()
+    //let categoryArray = ["Pirmas","Antras","Trecias","Ketvirtas"]
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-       
+      loadItems()
+        
     }
 
-    //MARK: - TableView Datasource Methods
     
-    
-    //MARK: - Data Manipulation Methods
-    
-    
-    //MARK: - Add New Categories
-    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath.row)
+    }
     
   
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        print("add button pressed")
+        var textField = UITextField()
+        let alert = UIAlertController(title: "Add New Category", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
+            print("clicked add Category on alert")
+            print(textField.text!)
+            if textField.text != "" {
+                let newCategory = Category(context: self.context)
+                newCategory.name=textField.text!
+                self.categoryArray.append(newCategory)
+                self.saveItems()
+            }
+            
+            self.tableView.reloadData()
+        }
+        
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create New Item"
+            textField=alertTextField
+        }
+        alert.addAction(action)
+        present(alert,animated: true,completion: nil)
     }
     
-    //MARK: - TableView Delegate Methods
+    //MARK: - TableView Data Source Methods
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return categoryArray.count
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        let item = categoryArray[indexPath.row]
+        cell.textLabel?.text = item.name
+        return cell
+    }
     
     
+    func saveItems(){
+        do {
+            
+            try context.save()
+        } catch {
+            print("error saving context \(error)")
+        }
+        tableView.reloadData()
+    }
     
+    func loadItems(request: NSFetchRequest<Category> = Category.fetchRequest()){
+        do {
+        categoryArray = try context.fetch(request)
+        } catch {
+        print("Error fetching data from context \(error)")
+        }
+        tableView.reloadData()
+    }
 }
+
