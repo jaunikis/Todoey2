@@ -12,6 +12,12 @@ import CoreData
 
 class TodoListViewController:  UITableViewController {
     
+    var selectedCategory : Category? {
+        didSet{
+            loadItems()
+        }
+    }
+    
     var itemArray = [Item2]()
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     //var itemArray = ["pirmas","antras","trecias","Ketvirtas","Penktas 5","Sestas 66666","sept sdkj jskd ash jkhf kjhs","astuntas 8888"]
@@ -112,6 +118,7 @@ class TodoListViewController:  UITableViewController {
                 let newItem = Item2(context: self.context)
                 newItem.title = textField.text!
                 newItem.done = false
+                newItem.parentCategory = self.selectedCategory
                 
                 self.itemArray.append(newItem)
                 //self.defaults.set(self.itemArray, forKey: "TodoListArray")
@@ -141,7 +148,17 @@ class TodoListViewController:  UITableViewController {
         tableView.reloadData()
     }
     
-    func loadItems(request: NSFetchRequest<Item2> = Item2.fetchRequest()){
+    func loadItems(request: NSFetchRequest<Item2> = Item2.fetchRequest(), predicate: NSPredicate? = nil){
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+        
+        
         do {
             itemArray = try context.fetch(request)
         } catch {
@@ -159,9 +176,9 @@ extension TodoListViewController: UISearchBarDelegate {
         let request: NSFetchRequest<Item2> = Item2.fetchRequest()
         //print(searchBar.text!)
         
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        loadItems(request: request)
+        loadItems(request: request, predicate: predicate)
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
