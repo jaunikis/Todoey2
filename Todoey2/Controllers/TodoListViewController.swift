@@ -83,6 +83,7 @@ class TodoListViewController:  UITableViewController {
                         try self.realm.write {
                             let newItem = Item2()
                             newItem.title = textField.text!
+                            newItem.dateCreated = Date()
                             currentCategory.items.append(newItem)
                         }
                     }catch {
@@ -108,7 +109,7 @@ class TodoListViewController:  UITableViewController {
     
     func loadItems(){
 
-        todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
+        todoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         
         tableView.reloadData()
     }
@@ -121,7 +122,7 @@ extension TodoListViewController: UISearchBarDelegate {
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         print("search button clicked")
         
-        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
+        todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
         tableView.reloadData()
     }
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -135,8 +136,8 @@ extension TodoListViewController: UISearchBarDelegate {
         }else{
             print("textas nelygus 0")
             print(searchBar.text)
-            todoItems = selectedCategory?.items.sorted(byKeyPath: "title", ascending: true)
-            todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "title", ascending: true)
+            todoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
+            todoItems = todoItems?.filter("title CONTAINS[cd] %@", searchBar.text!).sorted(byKeyPath: "dateCreated", ascending: true)
             tableView.reloadData()
         }
         
